@@ -33,3 +33,6 @@
      200ms  2.04% 74.74%     1450ms 14.83%  runtime.mallocgc
      170ms  1.74% 76.48%     1810ms 18.51%  runtime.growslice
    ```
+
+## using GoLand profiling:
+![img.png](docs/profiling.png)
