@@ -2,7 +2,7 @@ package fibonacci_test
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/wernerdweight/tmp/pkg/fibonacci"
+	"github.com/wernerdweight/go-playground/pkg/fibonacci"
 	"testing"
 )
 

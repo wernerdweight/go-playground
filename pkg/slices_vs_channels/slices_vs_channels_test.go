@@ -2,7 +2,7 @@ package slices_vs_channels_test
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/wernerdweight/tmp/pkg/slices_vs_channels"
+	"github.com/wernerdweight/go-playground/pkg/slices_vs_channels"
 	"testing"
 )
 
