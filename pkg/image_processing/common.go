@@ -1,6 +1,7 @@
 package image_processing
 
 import (
+	"encoding/csv"
 	"fmt"
 	"github.com/anthonynsimon/bild/histogram"
 	"github.com/anthonynsimon/bild/imgio"
@@ -9,10 +10,31 @@ import (
 	"github.com/muesli/smartcrop/nfnt"
 	"image"
 	"image/color"
+	"io"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
+
+func loadFromFile(filepath string) []ImageItem {
+	var imageItems []ImageItem
+	reader, _ := os.Open(filepath)
+	defer reader.Close()
+
+	rootDirectory := getRootDirectory(filepath)
+	csvReader := csv.NewReader(reader)
+	csvReader.Read() // skip first line
+	for {
+		line, err := csvReader.Read()
+		if io.EOF == err {
+			break
+		}
+		imageItem := imageItemFromCSV(line, rootDirectory)
+		imageItems = append(imageItems, imageItem)
+	}
+	return imageItems
+}
 
 func getRootDirectory(filepath string) string {
 	rootDirectoryParts := strings.Split(filepath, "/")

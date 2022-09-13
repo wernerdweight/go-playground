@@ -1,18 +1,23 @@
 package image_processing
 
 import (
-	"encoding/csv"
-	"io"
 	"os"
 )
 
 func ProcessChannel(filepath string) bool {
-	var loadChannel = make(chan ImageItem)
-	var floodFillChannel = make(chan ImageItem)
-	var cropChannel = make(chan ImageItem)
-	var generateHistogramChannel = make(chan ImageItem)
-	var saveImageChannel = make(chan ImageItem)
-	var saveHistogramChannel = make(chan ImageItem)
+	reader, _ := os.Open(filepath)
+	defer reader.Close()
+
+	items := loadFromFile(filepath)
+	itemCount := len(items)
+
+	var loadChannel = make(chan ImageItem, itemCount)
+	var floodFillChannel = make(chan ImageItem, itemCount)
+	var cropChannel = make(chan ImageItem, itemCount)
+	var generateHistogramChannel = make(chan ImageItem, itemCount)
+	var saveImageChannel = make(chan ImageItem, itemCount)
+	var saveHistogramChannel = make(chan ImageItem, itemCount)
+	var syncChannel = make(chan bool, 2*itemCount)
 
 	go func() {
 		for item := range loadChannel {
@@ -51,31 +56,25 @@ func ProcessChannel(filepath string) bool {
 	go func() {
 		for item := range saveImageChannel {
 			saveImage(&item)
+			syncChannel <- true
 		}
 	}()
 
 	go func() {
 		for item := range saveHistogramChannel {
 			saveHistogram(&item)
+			syncChannel <- true
 		}
 	}()
 
-	reader, _ := os.Open(filepath)
-	defer reader.Close()
-
-	rootDirectory := getRootDirectory(filepath)
-	csvReader := csv.NewReader(reader)
-	csvReader.Read() // skip first line
-	for {
-		line, err := csvReader.Read()
-		if io.EOF == err {
-			break
-		}
-		imageItem := imageItemFromCSV(line, rootDirectory)
-		loadChannel <- imageItem
+	for _, item := range items {
+		loadChannel <- item
 	}
-
 	close(loadChannel)
+
+	for i := 0; i < itemCount; i++ {
+		<-syncChannel
+	}
 
 	return true
 }
